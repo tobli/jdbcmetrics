@@ -26,6 +26,7 @@ of knowing what actually is happening between the application server & the datab
 2. [Setup the driver](#setup-the-driver)
 3. [Setup the filter](#setup-the-filter-optional) (optional) 
 4. [Setup a reporter](#reporters)
+5. [Choosing registry](#choose-registry) (optional)
 
 
 ###Add the jar
@@ -35,7 +36,7 @@ In your **pom.xml** file add:
 &lt;dependency&gt;
  &lt;groupId&gt;com.soulgalore&lt;/groupId&gt;
  &lt;artifactId&gt;jdbcmetrics&lt;/artifactId&gt;
- &lt;version&gt;0.9.1&lt;/version&gt;
+ &lt;version&gt;0.9.4&lt;/version&gt;
  &lt;scope&gt;runtime&lt;/scope&gt;
 &lt;/dependency&gt;
 </pre>
@@ -81,7 +82,7 @@ Add the filter in your **web.xml** file (make sure it run early in the chain):
 	&lt;/init-param&gt;
 	&lt;init-param&gt;
 		&lt;param-name&gt;request-header-name&lt;/param-name&gt;
-		&lt;param-value&gt;query-statistics&lt;/param-value&gt;
+		&lt;param-value&gt;jdbcmetrics&lt;/param-value&gt;
 	&lt;/init-param&gt;
 &lt;/filter&gt;
 </pre>
@@ -133,6 +134,9 @@ Then set it up in your **web.xml**:
 &lt;/servlet-mapping&gt;
 </pre>
 
+###Choose registry###
+The default <em>MetricRegistry</em> is used by default, if you want a new to be created 
+add the System property <em>com.soulgalore.jdbcmetrics.MetricRegistry</em> with the value <em>new</em>.
 
 ## Fetching info from individual request(s)
 You can get information on how many database reads & writes your request generates by two different ways: Either it is logged to your log system or you can get it as response headers
