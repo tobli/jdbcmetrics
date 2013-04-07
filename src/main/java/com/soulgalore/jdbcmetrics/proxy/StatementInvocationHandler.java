@@ -26,13 +26,25 @@ import java.lang.reflect.Method;
 import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.soulgalore.jdbcmetrics.JDBCMetrics;
 import com.soulgalore.jdbcmetrics.QueryThreadLocal;
 
 public class StatementInvocationHandler implements InvocationHandler {
 
-	private Statement statement;
-	private String sql;
+	private static final String METHOD_NAME_EXECUTE_QUERY = "executeQuery";
+	private static final String METHOD_NAME_EXECUTE_UPDATE = "executeUpdate";
+	private static final String METHOD_NAME_EXECUTE = "execute";
+	private static final String METHOD_NAME_ADD_BATCH = "addBatch";
+	private static final String METHOD_NAME_CLEAR_BATCH = "clearBatch";
+	private static final String METHOD_NAME_EXECUTE_BATCH = "executeBatch";
+
+	private final Statement statement;
+	private final String sql;
+	
+	private final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
 	private long nrOfBatchReads = 0;
 	private long nrOfBatchWrites = 0;
@@ -51,38 +63,51 @@ public class StatementInvocationHandler implements InvocationHandler {
 	public Object invoke(Object proxy, Method method, Object[] args)
 			throws Throwable {
 
+		boolean isTouched = true;
+		
 		// TODO we only need to time the onces that executes a query
 		// this adds a little overhead
-		long start = System.nanoTime();
+		final long start = System.nanoTime();
 		Object o;
 		try {
 			o = method.invoke(statement, args);
 		} catch (InvocationTargetException e) {
 			throw e.getCause();
 		}
-		long time = start - System.nanoTime();
+		final long time = start - System.nanoTime();
 
-		if ("executeQuery".equals(method.getName())) {
+		if (METHOD_NAME_EXECUTE_QUERY.equals(method.getName())) {
 			readStats(1, time);
-		} else if ("executeUpdate".equals(method.getName())) {
+		} else if (METHOD_NAME_EXECUTE_UPDATE.equals(method.getName())) {
 			writeStats(1, time);
-		} else if ("execute".equals(method.getName())) {
+		} else if (METHOD_NAME_EXECUTE.equals(method.getName())) {
 			incStats(args != null ? args[0].toString() : sql, time);
-		} else if ("addBatch".equals(method.getName())) {
+		} else if (METHOD_NAME_ADD_BATCH.equals(method.getName())) {
 			if (isRead(args[0].toString())) {
 				nrOfBatchReads++;
 			} else {
 				nrOfBatchWrites++;
 			}
-		} else if ("clearBatch".equals(method.getName())) {
+		} else if (METHOD_NAME_CLEAR_BATCH.equals(method.getName())) {
 			nrOfBatchReads = 0;
 			nrOfBatchWrites = 0;
-		} else if ("executeBatch".equals(method.getName())) {
+		} else if (METHOD_NAME_EXECUTE_BATCH.equals(method.getName())) {
 			readStats(nrOfBatchReads, time);
 			writeStats(nrOfBatchWrites, time);
 			nrOfBatchReads = 0;
 			nrOfBatchWrites = 0;
 		}
+		else {
+			isTouched = false;
+		}
+		
+		if (logger.isDebugEnabled() && isTouched) {
+			logger.debug(method.getName()
+					+ " "
+					+ (args != null ? args[0].toString() : (sql != null ? sql
+							: "")) + " " + time + " ns");
+		}
+
 		return o;
 	}
 

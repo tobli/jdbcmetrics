@@ -1,3 +1,23 @@
+/******************************************************
+ * JDBCMetrics
+ * 
+ *
+ * Copyright (C) 2013 by Magnus Lundberg (http://magnuslundberg.com) & Peter Hedenskog (http://peterhedenskog.com)
+ *
+ ******************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in 
+ * compliance with the License. You may obtain a copy of the License at
+ * 
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is 
+ * distributed  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
+ * See the License for the specific language governing permissions and limitations under the License.
+ *
+ *******************************************************
+ */
 package com.soulgalore.jdbcmetrics;
 
 import java.io.PrintWriter;
@@ -20,8 +40,8 @@ import com.soulgalore.jdbcmetrics.proxy.ProxyFactory;
 public abstract class AbstractCommonDataSource<T extends CommonDataSource> implements CommonDataSource,
 		Referenceable, Serializable {
 
-	protected transient ProxyFactory proxyFactory = new ProxyFactory();
-	private transient AtomicBoolean initialized = new AtomicBoolean();
+	protected final transient ProxyFactory proxyFactory = new ProxyFactory();
+	private final transient AtomicBoolean initialized = new AtomicBoolean();
 	private transient T dataSource;
 	
 	private String referenceName;
